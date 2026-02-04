@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import API_URL from '../config/api'
 
 const STEPS = [
     { id: 1, label: 'Idea' },
@@ -47,7 +48,7 @@ function Validate() {
         setError(null)
 
         try {
-            const response = await axios.post('/api/validate', formData)
+            const response = await axios.post(`${API_URL}/api/validate`, formData)
             navigate(`/results/${response.data.sessionId}`)
         } catch (err) {
             setError(err.response?.data?.error || 'Failed to start validation. Is the server running?')

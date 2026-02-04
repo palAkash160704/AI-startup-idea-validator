@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
+import API_URL from '../config/api';
 import Navbar from '../components/Navbar';
 import { ScoreRadarChart, SuccessGauge, ScoreBadge } from '../components/Charts';
 import { getResultDisplay } from '../components/ResultDisplays';
@@ -29,7 +30,7 @@ function Results() {
                     return;
                 }
 
-                const response = await axios.get(`/api/validate/${id}`);
+                const response = await axios.get(`${API_URL}/api/validate/${id}`);
                 setValidation(response.data);
 
                 if (response.data.status === 'complete' || response.data.status === 'error') {
