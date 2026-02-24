@@ -71,33 +71,61 @@ export function IdeaClarityDisplay({ data }) {
 export function MarketAnalysisDisplay({ data }) {
     if (!data) return null;
 
+    // Support both AI output format (tam/sam/som objects) and legacy format (marketSizeEstimate)
+    const tam = data.tam || (data.marketSizeEstimate ? { value: data.marketSizeEstimate.TAM } : null);
+    const sam = data.sam || (data.marketSizeEstimate ? { value: data.marketSizeEstimate.SAM } : null);
+    const som = data.som || (data.marketSizeEstimate ? { value: data.marketSizeEstimate.SOM } : null);
+    // Support both growthTrend (object from AI) and growthTrends (array from legacy)
+    const growthTrend = data.growthTrend || null;
+    const growthTrends = data.growthTrends || [];
+
     return (
         <div className="result-display">
-            {data.marketSizeEstimate && (
+            {(tam || sam || som) && (
                 <div className="result-section-item">
                     <h4>📊 Market Size</h4>
                     <div className="market-sizes">
-                        <div className="market-size-box">
-                            <span className="label">TAM</span>
-                            <span className="value">{data.marketSizeEstimate.TAM}</span>
-                        </div>
-                        <div className="market-size-box">
-                            <span className="label">SAM</span>
-                            <span className="value">{data.marketSizeEstimate.SAM}</span>
-                        </div>
-                        <div className="market-size-box">
-                            <span className="label">SOM</span>
-                            <span className="value">{data.marketSizeEstimate.SOM}</span>
-                        </div>
+                        {tam && (
+                            <div className="market-size-box">
+                                <span className="label">TAM</span>
+                                <span className="value">{tam.value}</span>
+                                {tam.confidence && <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Confidence: {tam.confidence}</span>}
+                            </div>
+                        )}
+                        {sam && (
+                            <div className="market-size-box">
+                                <span className="label">SAM</span>
+                                <span className="value">{sam.value}</span>
+                                {sam.confidence && <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Confidence: {sam.confidence}</span>}
+                            </div>
+                        )}
+                        {som && (
+                            <div className="market-size-box">
+                                <span className="label">SOM</span>
+                                <span className="value">{som.value}</span>
+                                {som.confidence && <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Confidence: {som.confidence}</span>}
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
 
-            {data.growthTrends?.length > 0 && (
+            {growthTrend && (
+                <div className="result-section-item">
+                    <h4>📈 Growth Trend</h4>
+                    <p>
+                        <strong style={{ textTransform: 'capitalize', color: growthTrend.direction === 'growing' ? 'var(--success)' : growthTrend.direction === 'declining' ? 'var(--error)' : 'var(--warning)' }}>
+                            {growthTrend.direction}
+                        </strong>{' — '}{growthTrend.rationale}
+                    </p>
+                </div>
+            )}
+
+            {growthTrends.length > 0 && (
                 <div className="result-section-item">
                     <h4>📈 Growth Trends</h4>
                     <ul>
-                        {data.growthTrends.map((trend, i) => (
+                        {growthTrends.map((trend, i) => (
                             <li key={i}>{trend}</li>
                         ))}
                     </ul>
@@ -112,6 +140,23 @@ export function MarketAnalysisDisplay({ data }) {
                             <li key={i}>{barrier}</li>
                         ))}
                     </ul>
+                </div>
+            )}
+
+            {data.willingnessToPay && (
+                <div className="result-section-item">
+                    <h4>💳 Willingness to Pay</h4>
+                    <p><strong style={{ textTransform: 'capitalize' }}>{data.willingnessToPay.assessment}</strong></p>
+                    {data.willingnessToPay.factors?.length > 0 && (
+                        <ul>{data.willingnessToPay.factors.map((f, i) => <li key={i}>{f}</li>)}</ul>
+                    )}
+                </div>
+            )}
+
+            {data.dataLimitations?.length > 0 && (
+                <div className="result-section-item" style={{ background: 'rgba(234,179,8,0.07)', borderRadius: '0.5rem', padding: '0.75rem' }}>
+                    <h4 style={{ color: 'var(--warning)' }}>⚠️ Data Limitations</h4>
+                    <ul>{data.dataLimitations.map((l, i) => <li key={i} style={{ color: 'var(--text-secondary)' }}>{l}</li>)}</ul>
                 </div>
             )}
 
@@ -139,9 +184,30 @@ export function CompetitorAnalysisDisplay({ data }) {
                     {data.directCompetitors.map((comp, i) => (
                         <div key={i} className="competitor-card">
                             <strong>{comp.name}</strong>
-                            <p>{comp.description}</p>
-                            <p><span style={{ color: 'var(--text-secondary)' }}>Strengths:</span> {comp.strengths}</p>
-                            <p><span style={{ color: 'var(--text-secondary)' }}>Weaknesses:</span> {comp.weaknesses}</p>
+                            {comp.offering && <p style={{ color: 'var(--text-secondary)' }}>{comp.offering}</p>}
+                            {comp.pricing && <p><span style={{ color: 'var(--text-secondary)' }}>Pricing:</span> {comp.pricing}</p>}
+                            {comp.strengths && (
+                                <p><span style={{ color: 'var(--text-secondary)' }}>Strengths:</span>{' '}
+                                    {Array.isArray(comp.strengths) ? comp.strengths.join(', ') : comp.strengths}
+                                </p>
+                            )}
+                            {comp.weaknesses && (
+                                <p><span style={{ color: 'var(--text-secondary)' }}>Weaknesses:</span>{' '}
+                                    {Array.isArray(comp.weaknesses) ? comp.weaknesses.join(', ') : comp.weaknesses}
+                                </p>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {data.indirectCompetitors?.length > 0 && (
+                <div className="result-section-item">
+                    <h4>🔄 Indirect Competitors</h4>
+                    {data.indirectCompetitors.map((comp, i) => (
+                        <div key={i} style={{ marginBottom: '0.5rem' }}>
+                            <strong>{comp.name}</strong>
+                            {comp.howTheyCompete && <span style={{ color: 'var(--text-secondary)', marginLeft: '0.5rem' }}>— {comp.howTheyCompete}</span>}
                         </div>
                     ))}
                 </div>
@@ -304,37 +370,60 @@ export function SuccessProbabilityDisplay({ data }) {
 export function RiskAnalysisDisplay({ data }) {
     if (!data) return null;
 
+    // Support both AI format (failureModes array + riskScore) and legacy format
+    const failureModes = data.failureModes || [];
+    const criticalRisks = data.criticalRisks || [];
+    const riskScore = data.riskScore || data.overallRiskScore;
+
     return (
         <div className="result-display">
-            {data.criticalRisks?.length > 0 && (
+            {failureModes.length > 0 && (
                 <div className="result-section-item">
-                    <h4>🚨 Critical Risks</h4>
-                    {data.criticalRisks.map((risk, i) => (
-                        <div key={i} className="risk-card risk-high">
-                            <div className="risk-header">{typeof risk === 'string' ? risk : risk.risk}</div>
-                            {risk.likelihood && <div className="risk-likelihood">Likelihood: {risk.likelihood}</div>}
-                            {risk.mitigation && <div className="risk-mitigation">Mitigation: {risk.mitigation}</div>}
+                    <h4>🔴 Failure Modes</h4>
+                    {failureModes.map((item, i) => (
+                        <div key={i} className={`risk-card risk-${item.likelihood === 'high' ? 'high' : item.likelihood === 'medium' ? 'medium' : 'low'}`} style={{ marginBottom: '1rem' }}>
+                            <div className="risk-header" style={{ fontWeight: 'bold' }}>{item.mode}</div>
+                            <div className="risk-likelihood" style={{ marginTop: '0.25rem' }}>
+                                <span style={{
+                                    color: item.likelihood === 'high' ? 'var(--error)' : item.likelihood === 'medium' ? 'var(--warning)' : 'var(--success)',
+                                    fontWeight: 'bold'
+                                }}>● {item.likelihood?.toUpperCase()}</span>
+                            </div>
+                            {item.earlyWarnings?.length > 0 && (
+                                <div style={{ marginTop: '0.5rem' }}>
+                                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>Early Warnings: </span>
+                                    <span style={{ fontSize: '0.875rem' }}>{item.earlyWarnings.join(', ')}</span>
+                                </div>
+                            )}
+                            {item.mitigations?.length > 0 && (
+                                <div style={{ marginTop: '0.25rem' }}>
+                                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>Mitigations: </span>
+                                    <span style={{ fontSize: '0.875rem', color: 'var(--success)' }}>{item.mitigations.join(', ')}</span>
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>
             )}
 
-            {data.warnings?.length > 0 && (
+            {criticalRisks.length > 0 && (
                 <div className="result-section-item">
-                    <h4>⚠️ Warnings</h4>
+                    <h4>🚨 Critical Risks</h4>
                     <ul>
-                        {data.warnings.map((warning, i) => (
-                            <li key={i}>{warning}</li>
+                        {criticalRisks.map((risk, i) => (
+                            <li key={i} style={{ color: 'var(--error)' }}>
+                                {typeof risk === 'string' ? risk : risk.risk}
+                            </li>
                         ))}
                     </ul>
                 </div>
             )}
 
-            {data.overallRiskScore && (
+            {riskScore && (
                 <div className="score-display">
                     <span className="score-label">Risk Level:</span>
-                    <span className={`score-value ${data.overallRiskScore <= 3 ? 'score-good' : data.overallRiskScore <= 6 ? 'score-medium' : 'score-low'}`}>
-                        {data.overallRiskScore}/10
+                    <span className={`score-value ${riskScore <= 3 ? 'score-good' : riskScore <= 6 ? 'score-medium' : 'score-low'}`}>
+                        {riskScore}/10
                     </span>
                 </div>
             )}
@@ -346,30 +435,74 @@ export function RiskAnalysisDisplay({ data }) {
 export function BusinessFeasibilityDisplay({ data }) {
     if (!data) return null;
 
+    // Support AI format: scalability is {assessment, challenges}, monetizationViability.opportunities
+    const scalabilityText = typeof data.scalability === 'object'
+        ? data.scalability?.assessment
+        : data.scalabilityAssessment;
+    const scalabilityChallenges = typeof data.scalability === 'object'
+        ? data.scalability?.challenges || []
+        : [];
+    const monetizationStrategies = data.monetizationStrategies ||
+        data.monetizationViability?.opportunities || [];
+    const breakEven = data.timeToBreakeven?.estimate || data.breakEvenEstimate;
+    const capitalRequired = data.capitalRequired?.estimate;
+    const keyResources = data.keyResources || [];
+    const operationalBottlenecks = data.operationalBottlenecks || [];
+
     return (
         <div className="result-display">
-            {data.scalabilityAssessment && (
+            {(scalabilityText) && (
                 <div className="result-section-item">
                     <h4>📈 Scalability</h4>
-                    <p>{data.scalabilityAssessment}</p>
+                    <p><strong style={{ textTransform: 'capitalize' }}>{scalabilityText}</strong></p>
+                    {scalabilityChallenges.length > 0 && (
+                        <ul>{scalabilityChallenges.map((c, i) => <li key={i}>{c}</li>)}</ul>
+                    )}
                 </div>
             )}
 
-            {data.monetizationStrategies?.length > 0 && (
+            {data.costStructure && (
                 <div className="result-section-item">
-                    <h4>💰 Monetization Strategies</h4>
+                    <h4>💵 Cost Structure</h4>
+                    <p>{data.costStructure.assessment}</p>
+                    {data.costStructure.concerns?.length > 0 && (
+                        <ul style={{ color: 'var(--warning)' }}>
+                            {data.costStructure.concerns.map((c, i) => <li key={i}>{c}</li>)}
+                        </ul>
+                    )}
+                </div>
+            )}
+
+            {monetizationStrategies.length > 0 && (
+                <div className="result-section-item">
+                    <h4>💰 Monetization</h4>
                     <ul>
-                        {data.monetizationStrategies.map((strategy, i) => (
+                        {monetizationStrategies.map((strategy, i) => (
                             <li key={i}>{strategy}</li>
                         ))}
                     </ul>
                 </div>
             )}
 
-            {data.breakEvenEstimate && (
+            {operationalBottlenecks.length > 0 && (
                 <div className="result-section-item">
-                    <h4>⚖️ Break-Even Estimate</h4>
-                    <p>{data.breakEvenEstimate}</p>
+                    <h4>⚙️ Operational Bottlenecks</h4>
+                    <ul>{operationalBottlenecks.map((b, i) => <li key={i}>{b}</li>)}</ul>
+                </div>
+            )}
+
+            {(breakEven || capitalRequired) && (
+                <div className="result-section-item">
+                    <h4>⚖️ Financial Estimates</h4>
+                    {breakEven && <p>Break-even: <strong>{breakEven}</strong></p>}
+                    {capitalRequired && <p>Capital required: <strong>{capitalRequired}</strong></p>}
+                </div>
+            )}
+
+            {keyResources.length > 0 && (
+                <div className="result-section-item">
+                    <h4>🔑 Key Resources</h4>
+                    <ul>{keyResources.map((r, i) => <li key={i}>{r}</li>)}</ul>
                 </div>
             )}
 

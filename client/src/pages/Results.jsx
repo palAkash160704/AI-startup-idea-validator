@@ -23,8 +23,10 @@ function Results() {
         const fetchResults = async () => {
             try {
                 // First check localStorage for cached results
+                // Skip cache if results have _notice (stale fallback from when API key was missing)
                 const cached = historyService.getById(id);
-                if (cached && cached.status === 'complete') {
+                const hasStaleNotice = cached?.results && Object.values(cached.results).some(r => r?._notice);
+                if (cached && cached.status === 'complete' && !hasStaleNotice) {
                     setValidation(cached);
                     setLoading(false);
                     return;
