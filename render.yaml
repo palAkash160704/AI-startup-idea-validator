@@ -9,8 +9,6 @@ services:
     buildCommand: npm install
     startCommand: node index.js
     envVars:
-      - key: GROQ_API_KEY
-        sync: false  # You'll set this manually in Render dashboard
       - key: NODE_ENV
         value: production
 
