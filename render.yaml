@@ -23,15 +23,12 @@ services:
     staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: startup-validator-api
-          property: host
+        value: https://startup-validator-api.onrender.com
     headers:
       - path: /*
         name: Cache-Control
         value: public, max-age=0, must-revalidate
     routes:
       - type: rewrite
-        source: /*
+        source: /(?!.*\.).*
         destination: /index.html
