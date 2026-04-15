@@ -6,7 +6,10 @@ import { dirname, join } from 'path';
 // Load environment variables directly in this file
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-config({ path: join(__dirname, '..', '..', '.env') });
+// Only load from .env in development
+if (process.env.NODE_ENV !== 'production') {
+  config({ path: join(__dirname, '..', '..', '.env') });
+}
 
 class AIClient {
     constructor() {

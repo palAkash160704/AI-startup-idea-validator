@@ -5,10 +5,12 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import validateRoutes from './routes/validate.js';
 
-// Load environment variables from parent directory
+// Load environment variables from parent directory (only in development)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-dotenv.config({ path: join(__dirname, '..', '.env') });
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config({ path: join(__dirname, '..', '.env') });
+}
 
 const app = express();
 const PORT = process.env.PORT || 3001;
