@@ -171,3 +171,27 @@ This project is licensed under the MIT License.
 ---
 
 Made with ❤️ for startup founders and entrepreneurs
+
+## 🧑‍💻 Developer: Run locally (quick)
+
+1. Start the backend (terminal A):
+```bash
+cd server
+npm install
+npm run dev
+```
+
+2. Start the frontend (terminal B):
+```bash
+cd client
+npm install
+npm run dev
+```
+
+3. Open the site:
+- Frontend: http://localhost:5173/
+- Backend health: http://localhost:3001/api/health
+
+Notes:
+- If `npm audit` shows vulnerabilities, run `npm audit fix` first. Use `npm audit fix --force` only if you accept possible breaking upgrades (it may bump Vite). 
+- If the server fails to start due to port in use, stop the old process (or set `PORT` in `.env`).
